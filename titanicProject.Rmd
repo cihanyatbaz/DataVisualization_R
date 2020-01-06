@@ -1,0 +1,228 @@
+---
+title: "Data Analysis with R - Titanic"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+```{r}
+
+
+
+# In this project I am goint to visualize Titanic dataset in R.
+
+
+```
+
+
+## Import the Libraries
+```{r}
+library(ggplot2) # This library for graphs
+library(ggthemes) # This one is for graphs 's themes 
+library(dplyr)  # This one is for combine train and test datasets
+
+
+```
+
+
+## Loading Data
+```{r}
+train <- read.csv("train.csv", stringsAsFactors = F)
+test  <- read.csv("test.csv", stringsAsFactors = F)
+
+options( warn = -1 )
+
+
+```
+
+
+## Combine data sets
+bind_rows : Needing to combine datasets with non-matching columns
+
+```{r}
+full_data  <- dplyr::bind_rows(train,test)
+
+
+```
+
+
+Details of our dataset
+```{r}
+str(full_data)
+
+
+```
+
+Summary of our columns
+```{r}
+summary(full_data)
+
+```
+
+
+## Exploratory Analysis
+
+
+### Age vs Survived
+- Here I am going to compare persons age with if they are survived or not 
+- The reason for use like this: "full_data[1:891,]", because I just want to analyze train part
+```{r}
+ggplot(full_data[1:891,], aes(Age, fill =factor(Survived))) + # aes= aesthetic mapping 
+  geom_histogram(bins = 30) +
+  theme_economist() +
+  xlab("Age") + 
+  scale_fill_discrete(name = "Survived") +
+  ggtitle("Age vs Survived")
+
+```
+
+
+
+
+### Sex vs Survived
+
+Here I am going to compare persons gender with if they are survived or not 
+```{r}
+ggplot(full_data[1:891,], aes(Sex, fill = factor(Survived))) + 
+  geom_bar(stat = "count", position = 'dodge') + 
+  theme_economist() +
+  xlab("Sex") +
+  ylab("Count") +
+  scale_fill_discrete(name = "Survived") +
+  ggtitle("Sex vs Survived")
+
+
+```
+
+
+
+### Age vs Sex vs Survived 
+
+Here I am going to compare persons age and gender with if they are survived or not 
+
+```{r}
+ggplot(full_data[1:891,], aes(Age, fill = factor(Survived))) + 
+  geom_histogram(bins = 30) + 
+  theme_economist_white() +
+  xlab("Age") +
+  ylab("Count") +
+  facet_grid(.~Sex) +
+  scale_fill_discrete(name = "Survived") +
+  ggtitle(" Age vs Sex vs Survived ")
+
+
+```
+
+
+
+
+### Pclass vs Survived
+
+Here I am going to compare persons platform class with if they are survived or not 
+
+```{r}
+ggplot(full_data[1:891, ], aes(Pclass, fill = factor(Survived))) +
+  geom_bar(stat = "count") +
+  theme_economist() +
+  xlab("Pclass") +
+  ylab("Count") +
+  scale_fill_discrete(name = "Survived") +
+  ggtitle(" Pclass vs Survived")
+
+
+```
+
+
+### Pclass vs Sex vs Age vs Survived
+
+Here I am going to compare persons platform class, gender, and age with if they are survived or not 
+
+```{r}
+ggplot(full_data[1:891,], aes(x = Age, y = Sex)) +
+  geom_jitter(aes(colour = factor(Survived))) +
+  theme_few() +
+  theme(legend.title = element_blank()) +
+  facet_wrap(~Pclass) +
+  labs(x = "Age", y="Sex", title = "Pclass vs Sex vs Age vs Survived") +
+  scale_fill_discrete(name = "Survived") +
+  scale_x_continuous(name = "Age", limits = c(0,81))
+
+
+```
+
+
+
+Here as you can see, names labeled (for instance; Mr, Ms, etc.)
+
+```{r}
+head(as.character(full_data$Name))
+
+
+```
+
+
+
+Now I am going to show them on a table
+
+```{r}
+# Extract titles
+full_data$Title <- gsub('(.*, )|(\\..*)', '', full_data$Name)
+
+# Titles by Sex
+table(full_data$Sex, full_data$Title)
+
+
+```
+
+
+
+As you can realize from the table some persons are labeled as Mlle, Mme, etc. Here I am going to replace them with Miss and Mrs. Also I am going to reassign officer and royalty which is used rarely.
+
+```{r}
+# Reassign rare titles
+officer <- c('Capt', 'Col', 'Don', 'Dr', 'Major', 'Rev')
+royalty <- c('Dona', 'Lady', 'the Countess', 'Sir', 'Jonkheer')
+
+# Reassign Mlle, Ms, Mme and officer, and royalty
+full_data$Title[full_data$Title == 'Mlle']    <- 'Miss'
+full_data$Title[full_data$Title == 'Ms']      <- 'Miss'
+full_data$Title[full_data$Title == 'Mme']     <- 'Mrs'
+
+full_data$Title[full_data$Title %in% royalty]    <- 'Royalty'
+full_data$Title[full_data$Title %in% officer]    <- 'Officer'
+
+# Here I am going to seperate Surname from Name
+full_data$Surname <- sapply(full_data$Name, function(x) strsplit(x, split = '[,.]')[[1]][1])
+
+
+```
+
+
+
+Here I am going to compare persons title with if they are survived or not 
+
+```{r}
+ggplot(full_data[1:891,], aes(Title, fill = factor(Survived))) +
+  geom_bar(stat = "count") +
+  theme_few() +
+  xlab('Title') +
+  ylab('Count') +
+  scale_fill_discrete(name = "Survived") +
+  ggtitle("Title vs Survived") 
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
